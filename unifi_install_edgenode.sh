@@ -14,14 +14,20 @@ prog=unifi_install_edge.sh
 
 # Install pre-reqs and copy unifi to vm
 /usr/sbin/adduser --disabled-password --gecos "" unifi
-cd /tmp; wget https://demostoragey4.blob.core.windows.net/mydisks/unifi-prereqs-2.6-ubuntu1604-hdi3.6.tar.gz
-sudo tar -xvf unifi-prereqs-2.6-ubuntu1604-hdi3.6.tar.gz -C /usr/local
+wget --retry-connrefused -t 0 -O /tmp/unifi-prereqs-2.6-ubuntu1604-hdi3.6.tar.gz "https://demostoragey4.blob.core.windows.net/mydisks/unifi-prereqs-2.6-ubuntu1604-hdi3.6.tar.gz?st=2018-04-12T07%3A53%3A00Z&se=2028-12-13T06%3A53%3A00Z&sp=rl&sv=2017-04-17&sr=b&sig=DDTbP%2BUYADC%2F1ZAO5G3Jz2t6gyYoaSKKNhP%2FqB8GuEM%3D"
+if [ $? -ne 0 ]; then
+    echo "Could not download Unifi prerequisite artifact"
+fi
+
+sudo tar -xvf /tmp/unifi-prereqs-2.6-ubuntu1604-hdi3.6.tar.gz -C /usr/local
 cd /usr/local/unifi-prereqs-2.6-ubuntu1604-hdi3.6
 sudo ./01_linux_prereqs.sh
 sudo ./02_unifi_prereqs.sh
-wget https://demostoragey4.blob.core.windows.net/mydisks/unifing-2.6.tar.gz
-sudo tar -xvf unifing-2.6.tar.gz -C /usr/local
-
+wget --retry-connrefused -t 0 -O /tmp/unifing-2.6.tar.gz "https://demostoragey4.blob.core.windows.net/mydisks/unifing-2.6.tar.gz?st=2018-04-12T00%3A53%3A00Z&se=2028-12-12T22%3A53%3A00Z&sp=rl&sv=2017-04-17&sr=b&sig=b126tfDX87cwamGjPKw1AzLU%2F1noZE2tOR1gBKuzLyQ%3D"
+if [ $? -ne 0 ]; then
+    echo "Could not download Unifi product artifact"
+fi
+sudo tar -xvf /tmp/unifing-2.6.tar.gz -C /usr/local
 
 sudo echo export JAVA_HOME=/usr/lib/jvm/java-1.7.0-openjdk-amd64 >> /etc/sqoop/conf/sqoop-env.sh
 #sshpass -f password.txt scp $2@$1-ssh.azurehdinsight.net:/usr/lib/hdinsight-common/certs/key_decryption_cert.prv /usr/lib/hdinsight-common/certs/key_decryption_cert.prv
