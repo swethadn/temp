@@ -114,6 +114,21 @@ if [ "$6" = "TRUE" ]; then
 fi
 
 
+# Set hdp.version property in yarn-config on HDI and copy the file to Unifi
+# wait for the property to get updated
+ssh -o "StrictHostKeyChecking no" $2@$1-ssh.azurehdinsight.net sudo python /var/lib/ambari-server/resources/scripts/configs.py -u $4 -p $3 -a "set" -l headnodehost -n $1 -c "yarn-site" -k "hdp.version" -v $hdp
+curl -u $4:$3 -H "X-Requested-By: ambari" -X POST -d '{"RequestInfo":{"command":"RESTART","context":"Restart all required services","operation_level":"host_component"},"Requests/resource_filters":[{"hosts_predicate":"HostRoles/stale_configs:true"}]}' https://$1.azurehdinsight.net/api/v1/clusters/$1/requests
+set +e
+while true
+  sshpass -f password.txt scp -o "StrictHostKeyChecking no" $2@$1-ssh.azurehdinsight.net:/etc/hadoop/conf/yarn-site.xml /etc/hadoop/conf/yarn-site.xml
+  do version=$(hdfs getconf -confKey hdp.version)
+    if [ $? -eq 0 ]
+    then
+      break
+    fi
+  done
+set -e
+
 chown -R unifi /var/log/nginx
 chown -R unifi /var/lib/nginx
 
