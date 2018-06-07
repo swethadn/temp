@@ -29,6 +29,16 @@ if [ $? -ne 0 ]; then
 fi
 sudo tar -xvf /tmp/unifing-2.6.tar.gz -C /usr/local
 
+# Exchange keys between HDI and Unifi vm
+sleep 5m
+apt install sshpass
+ssh-keygen -t rsa -f /root/.ssh/id_rsa -N ''
+echo $3 >> password.txt
+sed -i 's/~/\/root/g' /usr/bin/ssh-copy-id
+sleep 1m
+sshpass -f password.txt ssh-copy-id -i /root/.ssh/id_rsa.pub -o "StrictHostKeyChecking no" $2@$1-ssh.azurehdinsight.net:
+sed -i 's/\/root/~/g' /usr/bin/ssh-copy-id
+
 sudo echo export JAVA_HOME=/usr/lib/jvm/java-1.7.0-openjdk-amd64 >> /etc/sqoop/conf/sqoop-env.sh
 #sshpass -f password.txt scp $2@$1-ssh.azurehdinsight.net:/usr/lib/hdinsight-common/certs/key_decryption_cert.prv /usr/lib/hdinsight-common/certs/key_decryption_cert.prv
 
