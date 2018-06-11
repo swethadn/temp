@@ -10,3 +10,6 @@ sh install-docker-ubuntu.sh
 
 #	Install Azure CLI
 sh install-azure-cli-ubuntu.sh
+
+#       Run docker containers
+docker-compose up -d

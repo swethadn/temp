@@ -69,7 +69,8 @@
     "Ubuntu Script URLs": [
       "https://raw.githubusercontent.com/swethadn/temp/master/install-docker-ubuntu.sh",
       "https://raw.githubusercontent.com/swethadn/temp/master/install-azure-cli-ubuntu.sh",
-      "https://raw.githubusercontent.com/swethadn/temp/master/bootstrap-ubuntu.sh"
+      "https://raw.githubusercontent.com/swethadn/temp/master/bootstrap-ubuntu.sh",
+      "https://raw.githubusercontent.com/swethadn/temp/master/docker-compose.yml"
     ],
     "Script URLs": "[if(variables('isCentOS'), variables('CentOS Script URLs'), variables('Ubuntu Script URLs'))]",
     "CentOS Command": "sh bootstrap-cent-os.sh",
