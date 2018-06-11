@@ -1,0 +1,253 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "VM Admin User Name": {
+      "type": "string"
+    },
+    "VM Admin Password": {
+      "type": "securestring"
+    },
+    "Operating System": {
+      "defaultValue": "Ubuntu",
+      "type": "string",
+      "allowedValues": [
+        "CentOS",
+        "Ubuntu"
+      ],
+      "metadata": {
+        "description": "SKU of the VM."
+      }
+    },
+    "VM Size": {
+      "defaultValue": "Standard_D13_v2",
+      "type": "string",
+      "allowedValues": [
+        "Standard_D13_v2",
+        "Standard_B2s",
+        "Standard_B4s",
+        "Standard_B8s"
+      ],
+      "metadata": {
+        "description": "SKU of the VM."
+      }
+    },
+    "Public Domain Label": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "isCentOS": "[if(equals(parameters('Operating System'), 'CentOS'), bool('true'), bool('false'))]",
+    "VNET IP Range": "10.0.16.0/24",
+    "Public IP Name": "DockerPublicIP",
+    "NIC Name": "DockerNic",
+    "VM CentOS Name": "DockerCentOS-VM",
+    "VM Ubuntu Name": "DockerUbuntu-VM",
+    "VM Name": "[if(variables('isCentOS'), variables('VM CentOS Name'), variables('VM Ubuntu Name'))]",
+    "OS Disk Name": "[concat(variables('VM Name'), '-OsDisk')]",
+    "VNET Name": "DockerVNet",
+    "NSG Name": "DockerNsg",
+    "VM CentOS Image Reference": {
+      "publisher": "OpenLogic",
+      "offer": "CentOS",
+      "sku": "7.4",
+      "version": "latest"
+    },
+    "VM Ubuntu Image Reference": {
+      "publisher": "Canonical",
+      "offer": "UbuntuServer",
+      "sku": "17.10",
+      "version": "latest"
+    },
+    "VM Image Reference": "[if(variables('isCentOS'), variables('VM CentOS Image Reference'), variables('VM Ubuntu Image Reference'))]",
+    "Custom Script Name": "custom-script",
+    "CentOS Script URLs": [
+      "https://raw.githubusercontent.com/vplauzon/containers/master/DockerVM/DeployVM/install-docker-cent-os.sh",
+      "https://raw.githubusercontent.com/vplauzon/containers/master/DockerVM/DeployVM/install-azure-cli-cent-os.sh",
+      "https://raw.githubusercontent.com/vplauzon/containers/master/DockerVM/DeployVM/bootstrap-cent-os.sh"
+    ],
+    "Ubuntu Script URLs": [
+      "https://raw.githubusercontent.com/swethadn/temp/master/install-docker-ubuntu.sh",
+      "https://raw.githubusercontent.com/swethadn/temp/master/install-azure-cli-ubuntu.sh",
+      "https://raw.githubusercontent.com/vplauzon/containers/master/DockerVM/DeployVM/bootstrap-ubuntu.sh"
+    ],
+    "Script URLs": "[if(variables('isCentOS'), variables('CentOS Script URLs'), variables('Ubuntu Script URLs'))]",
+    "CentOS Command": "sh bootstrap-cent-os.sh",
+    "Ubuntu Command": "sh bootstrap-ubuntu.sh",
+    "Command": "[if(variables('isCentOS'), variables('CentOS Command'), variables('Ubuntu Command'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[variables('Public IP Name')]",
+      "apiVersion": "2017-10-01",
+      "location": "[resourceGroup().location]",
+      "tags": {},
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic",
+        "idleTimeoutInMinutes": 4,
+        "dnsSettings": {
+          "domainNameLabel": "[parameters('Public Domain Label')]"
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "name": "[variables('NSG Name')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "location": "[resourceGroup().location]",
+      "tags": {},
+      "properties": {
+        "securityRules": [
+          {
+            "name": "Allow-ssh",
+            "properties": {
+              "protocol": "TCP",
+              "sourcePortRange": "*",
+              "destinationPortRange": "22",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Allow-internet",
+            "properties": {
+              "protocol": "TCP",
+              "sourcePortRange": "*",
+              "destinationPortRange": "80-89",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 200,
+              "direction": "Inbound"
+            }
+          }
+        ],
+        "subnets": []
+      }
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[variables('VNET Name')]",
+      "apiVersion": "2017-10-01",
+      "location": "[resourceGroup().location]",
+      "tags": {},
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('VNET IP Range')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "front",
+            "properties": {
+              "addressPrefix": "[variables('VNET IP Range')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('NSG Name'))]"
+              }
+            }
+          }
+        ]
+      },
+      "resources": [],
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkSecurityGroups', variables('NSG Name'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('NIC Name')]",
+      "tags": {},
+      "apiVersion": "2017-10-01",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('Public IP Name'))]"
+              },
+              "subnet": {
+                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('VNet Name')), '/subnets/front')]"
+              }
+            }
+          }
+        ],
+        "dnsSettings": {
+          "dnsServers": []
+        },
+        "enableIPForwarding": false
+      },
+      "resources": [],
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('VNet Name'))]",
+        "[resourceId('Microsoft.Network/publicIPAddresses', variables('Public IP Name'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[variables('VM Name')]",
+      "tags": {},
+      "apiVersion": "2017-12-01",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('VM Size')]"
+        },
+        "storageProfile": {
+          "imageReference": "[variables('VM Image Reference')]",
+          "osDisk": {
+            "name": "[variables('OS Disk Name')]",
+            "createOption": "FromImage",
+            "osType": "Linux",
+            "caching": "ReadWrite"
+          },
+          "dataDisks": []
+        },
+        "osProfile": {
+          "computerName": "[variables('VM Name')]",
+          "adminUsername": "[parameters('VM Admin User Name')]",
+          "adminPassword": "[parameters('VM Admin Password')]"
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('NIC Name'))]"
+            }
+          ]
+        }
+      },
+      "resources": [
+        {
+          "type": "extensions",
+          "name": "[variables('Custom Script Name')]",
+          "tags": {},
+          "apiVersion": "2017-12-01",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[resourceId('Microsoft.Compute/virtualMachines', variables('VM Name'))]"
+          ],
+          "properties": {
+            "publisher": "Microsoft.Azure.Extensions",
+            "type": "CustomScript",
+            "typeHandlerVersion": "2.0",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+              "fileUris": "[variables('Script URLs')]",
+              "commandToExecute": "[variables('Command')]"
+            }
+          }
+        }
+      ],
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkInterfaces', variables('NIC Name'))]"
+      ]
+    }
+  ]
+}
