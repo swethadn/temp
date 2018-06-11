@@ -30,7 +30,7 @@ apt-get update
 #   Install latest version of Docker CE
 apt-get install docker-ce -y
 
-apt-get install docker-compose
+apt-get install docker-compose -y
 
 #   Run Hello World
 docker run hello-world
