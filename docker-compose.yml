@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: unifi
+spec:
+  containers:
+    - name: postgres-9-4
+      image: unifiregistry.azurecr.io/samples/postgres-9-4
+      imagePullPolicy: Always
+      ports:
+        - containerPort: 5432
+          hostPort: 5432
+          protocol: TCP
+    - name: unifi-base
+      image: unifiregistry.azurecr.io/samples/unifi-base:22.0
+      imagePullPolicy: Always
+      ports:
+        - containerPort: 8000
+          hostPort: 8000
+          protocol: TCP
+        - containerPort: 9200
+          hostPort: 9200
+          protocol: TCP
+        - containerPort: 8443
+          hostPort: 8443
+          protocol: TCP
+        - containerPort: 4040
+          hostPort: 4040
+          protocol: TCP
+  restartPolicy: Always
+  dnsPolicy: Default
