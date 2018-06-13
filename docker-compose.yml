@@ -16,5 +16,5 @@ services:
       volumes:
         - unifivol:/var/lib/waagent
 
-  volumes:
-     unifivol:
+volumes:
+ unifivol:
