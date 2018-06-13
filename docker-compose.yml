@@ -4,6 +4,8 @@ services:
       image: unifiregistry.azurecr.io/samples/postgres-9-4
       ports:
         - "5432:5432"
+      volumes:
+        - unifivol:/usr/local/pgsql/data
   unifi-base:
       image: unifiregistry.azurecr.io/samples/unifi-base
       ports:
@@ -11,3 +13,8 @@ services:
         - "9200:9200"
         - "8443:8443"
         - "4040:4040"
+      volumes:
+        - unifivol:/var/lib/waagent
+
+  volumes:
+     unifivol:

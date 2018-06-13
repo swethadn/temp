@@ -19,6 +19,14 @@
         "description": "SKU of the VM."
       }
     },
+    "storageAccountType": {
+        "type": "string",
+        "defaultValue": "Standard_LRS"
+    },
+    "storageAccountName": {
+        "defaultValue": "[concat(uniquestring(resourceGroup().id), 'storage')]",
+        "type": "string"
+    },
     "VM Size": {
       "defaultValue": "Standard_D13_v2",
       "type": "string",
@@ -75,9 +83,43 @@
     "Script URLs": "[if(variables('isCentOS'), variables('CentOS Script URLs'), variables('Ubuntu Script URLs'))]",
     "CentOS Command": "sh bootstrap-cent-os.sh",
     "Ubuntu Command": "sh bootstrap-ubuntu.sh",
-    "Command": "[if(variables('isCentOS'), variables('CentOS Command'), variables('Ubuntu Command'))]"
+    "Command": "[concat('sh bootstrap-ubuntu.sh ', resourceGroup().name, ' ', parameters('storageAccountName'))]"
   },
   "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[parameters('storageAccountName')]",
+            "sku": {
+                "name": "[parameters('storageAccountType')]",
+                "tier": "Standard"
+            },
+            "kind": "Storage",
+            "apiVersion": "2017-06-01",
+            "location":  "[resourceGroup().location]",
+            "tags": {},
+            "scale": null,
+            "properties": {
+                "encryption": {
+                    "keySource": "Microsoft.Storage",
+                    "services": {
+                        "blob": {
+                            "enabled": true
+                        },
+                        "file": {
+                            "enabled": true
+                        }
+                    }
+                },
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "defaultAction": "Allow",
+                    "ipRules": [],
+                    "virtualNetworkRules": []
+                },
+                "supportsHttpsTrafficOnly": false
+            },
+            "dependsOn": []
+        },
     {
       "type": "Microsoft.Network/publicIPAddresses",
       "name": "[variables('Public IP Name')]",
