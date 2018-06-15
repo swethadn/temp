@@ -29,6 +29,10 @@
         "defaultValue": "[concat(uniquestring(resourceGroup().id), 'storage')]",
         "type": "string"
     },
+    "storageAccountName": {
+        "defaultValue": "[concat(uniquestring(resourceGroup().id), 'volume')]",
+        "type": "string"
+    },
     "VM Size": {
       "defaultValue": "Standard_D13_v2",
       "type": "string",
@@ -85,7 +89,7 @@
     "Script URLs": "[if(variables('isCentOS'), variables('CentOS Script URLs'), variables('Ubuntu Script URLs'))]",
     "CentOS Command": "sh bootstrap-cent-os.sh",
     "Ubuntu Command": "sh bootstrap-ubuntu.sh",
-    "Command": "[concat('sh bootstrap-ubuntu.sh ', resourceGroup().name, ' ', parameters('storageAccountName'))]"
+    "Command": "[concat('sh bootstrap-ubuntu.sh ', resourceGroup().name, ' ', parameters('storageAccountName'), ' ', parameters('storageVolumeName'))]"
   },
   "resources": [
         {

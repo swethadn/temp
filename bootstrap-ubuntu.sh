@@ -3,6 +3,8 @@
 # List of positional variables
 # $RGNAME = $1
 # $STORAGE_ACCOUNTNAME = $2
+# $VOLUME_NAME = $3
+# $UNIFI_VERSION = 2.6
 
 ###	This file should be run in SUDO mode
 
@@ -25,10 +27,23 @@ if [ -z "$current_env_conn_string" ] ; then
 fi
 
 #       Create a file share
-az storage share create --name unifivol --quota 2048 --connection-string $current_env_conn_string
+az storage share create --name $3 --quota 2048 --connection-string $current_env_conn_string
 
 #       Login to registry
 docker login unifiregistry.azurecr.io -u unifiregistry -p u=++C=X+=pKw/+++14/bDFaaGL/TQ/FN
 
 #       Run docker containers
 docker-compose up -d
+
+
+#       Download the unifi product tarball
+wget --retry-connrefused -t 0 -O /tmp/unifing-2.6.tar.gz "https://demostoragey4.blob.core.windows.net/mydisks/unifing-2.6.tar.gz?st=2018-04-01T11%3A46%3A00Z&se=2018-12-31T10%3A46%3A00Z&sp=rl&sv=2017-04-17&sr=b&sig=EUUOetQf4I6C0iwt5gaSDCNObRmyn0k6M3%2Fh4yjeDmk%3D"
+if [ $? -ne 0 ]; then
+    echo "Could not download Unifi product artifact"
+fi
+
+echo "INFO: Copying tar file for version 2.6 of Unifi"
+cd /tmp/ && tar xvf unifing-2.6.tar > /dev/null 2>&1
+
+#       Copy the tarball to unifi container
+cp -R unifing-2.6 /var/lib/docker/volume/0_$3/_data/
