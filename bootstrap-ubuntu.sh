@@ -15,25 +15,17 @@ sh install-docker-ubuntu.sh
 #	Install Azure CLI
 sh install-azure-cli-ubuntu.sh
 
-#       Azure File Storage - Docker Volume Driver - Creating docker volume share
-storage_key = $(az storage account keys list --resource-group $1 -n $2 -o tsv --query '[].{value:value}'[0])
-if [[ $storage_key == "" ]]; then
-    echo "Couldn't retrieve the storage key."
+#       Login to azure
+az login -u swetha@unifisoftware.com -p Un1f1rocks123!
+
+#       Azure File Storage - get connection string
+current_env_conn_string = $(az storage account show-connection-string -n $2 -g $1 --query 'connectionString' -o tsv)
+if [[ $current_env_conn_string == "" ]]; then  
+    echo "Couldn't retrieve the connection string."
 fi
 
-echo "AZURE_STORAGE_ACCOUNT=$2" >> storageaccount
-echo "AZURE_STORAGE_ACCOUNT_KEY=$storage_key" >> storageaccount
-
-wget -qO /usr/bin/azurefile-dockervolumedriver https://github.com/Azure/azurefile-dockervolumedriver/releases/download/0.2.1/azurefile-dockervolumedriver
-chmod +x /usr/bin/azurefile-dockervolumedriver
-wget -qO /etc/systemd/system/azurefile-dockervolumedriver.service https://raw.githubusercontent.com/Azure/azurefile-dockervolumedriver/master/contrib/init/systemd/azurefile-dockervolumedriver.service
-cp storageaccount /etc/default/
-systemctl daemon-reload
-systemctl enable azurefile-dockervolumedriver
-systemctl start azurefile-dockervolumedriver
-systemctl status azurefile-dockervolumedriver
-
-docker volume create -d azurefile --name unifivol -o share-unifivol
+#       Create a file share
+az storage share create --name unifivol --quota 2048 --connection-string $current_env_conn_string 1 > /dev/null
 
 #       Login to registry
 docker login unifiregistry.azurecr.io -u unifiregistry -p u=++C=X+=pKw/+++14/bDFaaGL/TQ/FN
