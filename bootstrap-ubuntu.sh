@@ -25,7 +25,7 @@ if [ -z "$current_env_conn_string" ] ; then
 fi
 
 #       Create a file share
-az storage share create --name unifivol --quota 2048 --connection-string $current_env_conn_string 1 > /dev/null
+az storage share create --name unifivol --quota 2048 --connection-string $current_env_conn_string
 
 #       Login to registry
 docker login unifiregistry.azurecr.io -u unifiregistry -p u=++C=X+=pKw/+++14/bDFaaGL/TQ/FN
