@@ -19,8 +19,8 @@ sh install-azure-cli-ubuntu.sh
 az login -u swetha@unifisoftware.com -p Un1f1rocks123!
 
 #       Azure File Storage - get connection string
-current_env_conn_string = $(az storage account show-connection-string -n $2 -g $1 --query 'connectionString' -o tsv)
-if [[ $current_env_conn_string == "" ]]; then  
+current_env_conn_string=$(az storage account show-connection-string -n $2 -g $1 --query 'connectionString' -o tsv)
+if [ -z "$current_env_conn_string" ] ; then
     echo "Couldn't retrieve the connection string."
 fi
 
