@@ -43,7 +43,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "INFO: Copying tar file for version 2.6 of Unifi"
-cd /tmp/ && tar xvf unifing-2.6.tar > /dev/null 2>&1
+cd /tmp/ && tar xvzf unifing-2.6.tar.gz > /dev/null 2>&1
 
 #       Copy the tarball to unifi container
-cp -R unifing-2.6 /var/lib/docker/volume/0_$3/_data/
+cp -R unifing-2.6 /var/lib/docker/volumes/0_$3/_data/

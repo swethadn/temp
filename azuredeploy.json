@@ -29,7 +29,7 @@
         "defaultValue": "[concat(uniquestring(resourceGroup().id), 'storage')]",
         "type": "string"
     },
-    "storageAccountName": {
+    "storageVolumeName": {
         "defaultValue": "[concat(uniquestring(resourceGroup().id), 'volume')]",
         "type": "string"
     },

@@ -6,6 +6,13 @@ services:
         - "5432:5432"
       volumes:
         - unifivol:/usr/local/pgsql/data
+  apache-hdfs-2-7-1:
+      image: unifiregistry.azurecr.io/samples/apache-hdfs-2-7-1
+      ports:
+        - "8021:8021"
+        - "8088:8088"
+      volumes:
+        - unifivol:/var/lib/waagent
   unifi-base:
       image: unifiregistry.azurecr.io/samples/unifi-base
       ports:
